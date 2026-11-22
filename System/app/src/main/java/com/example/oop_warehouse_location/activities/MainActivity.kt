@@ -27,6 +27,7 @@ import com.example.oop_warehouse_location.models.user.Employee
 import com.example.oop_warehouse_location.models.user.User
 import com.example.oop_warehouse_location.models.user.UserFactory
 import com.example.oop_warehouse_location.repository.FirebaseRepository
+import com.example.oop_warehouse_location.services.WarehouseGeofenceManager
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -105,6 +106,8 @@ class MainActivity : BaseActivity() {
             uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty(),
             warehouseId = warehouseId
         )
+
+        registerActiveGeofence(warehouseId)
 
         // Bind all navigation views first to avoid UninitializedPropertyAccessException
         drawerLayout = findViewById(R.id.drawerLayout)
@@ -316,6 +319,7 @@ class MainActivity : BaseActivity() {
                 currentUser = user
                 warehouseId = user.warehouseId
                 applyRoleBasedUi()
+                registerActiveGeofence(warehouseId)
 
                 if (user is Employee) {
                     if (warehouseId.isBlank()) {
@@ -395,6 +399,15 @@ class MainActivity : BaseActivity() {
     fun openWarehouseMap() {
         loadFragment(WarehouseMapFragment.newInstance(warehouseId))
         selectTab(NavTab.NONE)
+    }
+
+    private fun registerActiveGeofence(whId: String) {
+        if (whId.isBlank()) return
+        FirebaseRepository().getWarehouse(whId).addOnSuccessListener { wh ->
+            if (wh.hasCoordinates()) {
+                WarehouseGeofenceManager(this).registerWarehouseGeofence(wh)
+            }
+        }
     }
 
     /** Replace the fragment inside the container. */

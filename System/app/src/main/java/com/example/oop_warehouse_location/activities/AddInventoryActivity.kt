@@ -1,8 +1,11 @@
 package com.example.oop_warehouse_location.activities
 
 import android.Manifest
+import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -17,6 +20,7 @@ import com.example.oop_warehouse_location.activities.base.BaseActivity
 import com.example.oop_warehouse_location.models.ActivityLog
 import com.example.oop_warehouse_location.models.Parcel
 import com.example.oop_warehouse_location.repository.FirebaseRepository
+import com.example.oop_warehouse_location.services.WarehouseGeofenceManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -248,19 +252,63 @@ class AddInventoryActivity : BaseActivity() {
     private fun setupActionButtons() {
         btnSaveItem.setOnClickListener {
             if (validateForm()) {
-                saveParcel(finishAfterSave = true)
+                checkGeofenceBeforeSave(finishAfterSave = true)
             }
         }
 
         btnReceiveNext.setOnClickListener {
             if (validateForm()) {
-                saveParcel(finishAfterSave = false)
+                checkGeofenceBeforeSave(finishAfterSave = false)
             }
         }
 
         btnDiscard.setOnClickListener {
             clearForm()
             finish()
+        }
+    }
+
+    private fun checkGeofenceBeforeSave(finishAfterSave: Boolean) {
+        val warehouseId = intent.getStringExtra("warehouseId").orEmpty()
+        if (warehouseId.isBlank()) {
+            saveParcel(finishAfterSave)
+            return
+        }
+
+        repository.getWarehouse(warehouseId).addOnSuccessListener { wh ->
+            if (wh.hasCoordinates()) {
+                val fineGranted = ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+
+                if (fineGranted) {
+                    val locationManager = getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+                    val lastLoc = locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                        ?: locationManager?.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+
+                    if (lastLoc != null) {
+                        val geofenceManager = WarehouseGeofenceManager(this)
+                        val isInside = geofenceManager.isInsideGeofence(lastLoc.latitude, lastLoc.longitude, wh)
+                        val distance = geofenceManager.getDistanceMeters(lastLoc.latitude, lastLoc.longitude, wh.latitude, wh.longitude)
+
+                        if (!isInside && distance > (wh.radiusMeters * 2).coerceAtLeast(300.0)) {
+                            AlertDialog.Builder(this)
+                                .setTitle(R.string.offsite_warning_title)
+                                .setMessage(getString(R.string.offsite_warning_message, distance.toInt()))
+                                .setPositiveButton(R.string.register_anyway) { _, _ ->
+                                    saveParcel(finishAfterSave)
+                                }
+                                .setNegativeButton(R.string.cancel, null)
+                                .show()
+                            return@addOnSuccessListener
+                        }
+                    }
+                }
+            }
+            saveParcel(finishAfterSave)
+        }.addOnFailureListener {
+            saveParcel(finishAfterSave)
         }
     }
 

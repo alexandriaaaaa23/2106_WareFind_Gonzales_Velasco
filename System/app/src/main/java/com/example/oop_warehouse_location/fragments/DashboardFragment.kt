@@ -175,6 +175,20 @@ class DashboardFragment : BaseWarehouseFragment() {
                                 tvLocationHeader.visibility = View.GONE
                             }
                         }
+
+                        // Display Geofence monitoring status
+                        val tvGeofenceBadge = view?.findViewById<TextView>(R.id.tvGeofenceBadge)
+                        if (tvGeofenceBadge != null) {
+                            if (wh.hasCoordinates()) {
+                                tvGeofenceBadge.text = getString(R.string.geofence_active_status)
+                                tvGeofenceBadge.visibility = View.VISIBLE
+                                tvGeofenceBadge.setOnClickListener {
+                                    (activity as? MainActivity)?.openWarehouseMap()
+                                }
+                            } else {
+                                tvGeofenceBadge.visibility = View.GONE
+                            }
+                        }
                     }
                 }
         }

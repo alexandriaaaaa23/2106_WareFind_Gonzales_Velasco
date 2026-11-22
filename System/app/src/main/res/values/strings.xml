@@ -150,4 +150,14 @@
     <string name="location_permission_required">Location permission is required to fetch GPS coordinates</string>
     <string name="acquiring_location">Acquiring current GPS location…</string>
 
+    <!--GEOFENCING & SPATIAL TRIGGERS (PHASE 4)-->
+    <string name="geofence_active_status">Geofence: Monitoring Active</string>
+    <string name="geofence_inactive_status">Geofence: Coordinates Unset</string>
+    <string name="geofence_onsite">On-Site: Inside Warehouse</string>
+    <string name="geofence_offsite">Off-Site: %1$dm away</string>
+    <string name="offsite_warning_title">Off-Site Location Alert</string>
+    <string name="offsite_warning_message">Your device is currently located outside the warehouse geofence perimeter (%1$dm away). Do you wish to register this parcel anyway?</string>
+    <string name="register_anyway">Register Anyway</string>
+    <string name="geofence_registered_success">Automated geofence tracking active</string>
+
 </resources>

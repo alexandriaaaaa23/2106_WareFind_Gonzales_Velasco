@@ -26,6 +26,7 @@ import com.example.oop_warehouse_location.adapters.MemberAdapter
 import com.example.oop_warehouse_location.fragments.base.BaseWarehouseFragment
 import com.example.oop_warehouse_location.models.Warehouse
 import com.example.oop_warehouse_location.models.user.User
+import com.example.oop_warehouse_location.services.WarehouseGeofenceManager
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Locale
@@ -273,6 +274,10 @@ class ManageWarehouseFragment : BaseWarehouseFragment() {
                 ).addOnSuccessListener {
                     if (isAdded) {
                         Toast.makeText(requireContext(), R.string.location_updated_success, Toast.LENGTH_SHORT).show()
+                        val updatedWh = warehouse.copy(latitude = lat, longitude = lng, address = address, radiusMeters = radius)
+                        context?.let { ctx ->
+                            WarehouseGeofenceManager(ctx).registerWarehouseGeofence(updatedWh)
+                        }
                         view?.let { loadWarehouse(it) }
                     }
                 }.addOnFailureListener { e ->

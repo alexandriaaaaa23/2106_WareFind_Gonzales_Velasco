@@ -59,6 +59,9 @@ dependencies {
     // OpenStreetMap (OSMDroid)
     implementation(libs.osmdroid.android)
 
+    // Google Play Services Location (Geofencing Phase 4)
+    implementation(libs.play.services.location)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
