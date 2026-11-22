@@ -93,6 +93,36 @@ class DashboardFragment : BaseWarehouseFragment() {
 
         view.findViewById<View>(R.id.tvOutboundDock)?.setOnClickListener(clickOnShipped)
         (view.findViewById<View>(R.id.tvOutboundDock)?.parent as? View)?.setOnClickListener(clickOnShipped)
+
+        // Floor Map (Indoor GIS) navigation
+        view.findViewById<View>(R.id.tvAisleHeatmapLink)?.setOnClickListener {
+            (activity as? MainActivity)?.openFloorPlan()
+        }
+        view.findViewById<View>(R.id.cardZoneA)?.setOnClickListener {
+            (activity as? MainActivity)?.openFloorPlan("Zone A")
+        }
+        view.findViewById<View>(R.id.cardZoneB)?.setOnClickListener {
+            (activity as? MainActivity)?.openFloorPlan("Zone B")
+        }
+        view.findViewById<View>(R.id.cardZoneC)?.setOnClickListener {
+            (activity as? MainActivity)?.openFloorPlan("Zone C")
+        }
+        view.findViewById<View>(R.id.cardAisleLoadIndex)?.setOnClickListener {
+            (activity as? MainActivity)?.openFloorPlan()
+        }
+
+        val etSearch = view.findViewById<android.widget.EditText>(R.id.etSearch)
+        etSearch?.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                val query = etSearch.text?.toString()?.trim().orEmpty()
+                if (query.isNotBlank()) {
+                    (activity as? MainActivity)?.openFloorPlan(targetParcelId = query)
+                }
+                true
+            } else {
+                false
+            }
+        }
     }
 
     override fun onResume() {

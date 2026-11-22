@@ -345,11 +345,15 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvAisleHeatmapLink"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/aisle_heatmap"
+                    android:background="?attr/selectableItemBackground"
+                    android:padding="4dp"
+                    android:text="Floor Map→"
                     android:textColor="@color/pink"
-                    android:textSize="12sp" />
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <!-- Zone Cards -->
@@ -361,11 +365,13 @@
 
                 <!-- Zone A -->
                 <LinearLayout
+                    android:id="@+id/cardZoneA"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
                     android:background="@drawable/bg_stat_card"
+                    android:foreground="?attr/selectableItemBackground"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:padding="12dp">
@@ -392,11 +398,13 @@
 
                 <!-- Zone B (highlighted) -->
                 <LinearLayout
+                    android:id="@+id/cardZoneB"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
                     android:background="@drawable/bg_stat_card"
+                    android:foreground="?attr/selectableItemBackground"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:padding="12dp">
@@ -423,11 +431,13 @@
 
                 <!-- Zone C -->
                 <LinearLayout
+                    android:id="@+id/cardZoneC"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
                     android:background="@drawable/bg_stat_card"
+                    android:foreground="?attr/selectableItemBackground"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:padding="12dp">
@@ -484,6 +494,7 @@
 
         <!-- ===== AISLE LOAD INDEX ===== -->
         <LinearLayout
+            android:id="@+id/cardAisleLoadIndex"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -492,6 +503,7 @@
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/bg_card_rounded"
+            android:foreground="?attr/selectableItemBackground"
             android:elevation="4dp"
             android:padding="16dp">
 

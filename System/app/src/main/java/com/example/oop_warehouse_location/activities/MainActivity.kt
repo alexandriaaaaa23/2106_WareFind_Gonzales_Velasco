@@ -19,6 +19,7 @@ import com.example.oop_warehouse_location.R
 import com.example.oop_warehouse_location.activities.base.BaseActivity
 import com.example.oop_warehouse_location.fragments.ActivityLogsFragment
 import com.example.oop_warehouse_location.fragments.DashboardFragment
+import com.example.oop_warehouse_location.fragments.FloorPlanFragment
 import com.example.oop_warehouse_location.fragments.ManageWarehouseFragment
 import com.example.oop_warehouse_location.fragments.StockFragment
 import com.example.oop_warehouse_location.models.user.Employee
@@ -152,6 +153,12 @@ class MainActivity : BaseActivity() {
                 R.id.nav_stock -> {
                     loadFragment(StockFragment.newInstance(warehouseId))
                     selectTab(NavTab.STOCK)
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    true
+                }
+                R.id.nav_floor_plan -> {
+                    loadFragment(FloorPlanFragment.newInstance(warehouseId))
+                    selectTab(NavTab.NONE)
                     drawerLayout.closeDrawer(GravityCompat.START)
                     true
                 }
@@ -369,6 +376,12 @@ class MainActivity : BaseActivity() {
     fun openStock(initialFilter: StockFragment.StatusFilter = StockFragment.StatusFilter.IN_STOCK) {
         loadFragment(StockFragment.newInstance(warehouseId, initialFilter))
         selectTab(NavTab.STOCK)
+    }
+
+    /** Opens the indoor GIS floor plan map screen. */
+    fun openFloorPlan(initialZone: String? = null, targetParcelId: String? = null) {
+        loadFragment(FloorPlanFragment.newInstance(warehouseId, initialZone, targetParcelId))
+        selectTab(NavTab.NONE)
     }
 
     /** Replace the fragment inside the container. */
