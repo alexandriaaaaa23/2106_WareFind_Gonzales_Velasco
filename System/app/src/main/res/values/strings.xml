@@ -131,6 +131,9 @@
 
     <!--GIS / WAREHOUSE LOCATION-->
     <string name="warehouse_location">Warehouse Location</string>
+    <string name="warehouse_count_mapped">%1$d Mapped</string>
+    <string name="warehouse_capacity_format">Capacity: %1$d units</string>
+    <string name="geofence_radius_badge">%1$dm Geofence</string>
     <string name="no_address_set">No physical address set</string>
     <string name="no_coordinates_set">Coordinates not configured</string>
     <string name="geofence_radius_format">Geofence Radius: %1$d m</string>

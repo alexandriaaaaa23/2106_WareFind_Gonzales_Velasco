@@ -362,12 +362,24 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvGlobalMapLink"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:padding="4dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="Global Map 📍"
+                    android:textColor="@color/pink"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
                     android:id="@+id/tvAisleHeatmapLink"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="?attr/selectableItemBackground"
                     android:padding="4dp"
-                    android:text="Floor Map→"
+                    android:text="Floor Map →"
                     android:textColor="@color/pink"
                     android:textSize="12sp"
                     android:textStyle="bold" />

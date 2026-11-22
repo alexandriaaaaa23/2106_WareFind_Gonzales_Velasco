@@ -22,6 +22,7 @@ import com.example.oop_warehouse_location.fragments.DashboardFragment
 import com.example.oop_warehouse_location.fragments.FloorPlanFragment
 import com.example.oop_warehouse_location.fragments.ManageWarehouseFragment
 import com.example.oop_warehouse_location.fragments.StockFragment
+import com.example.oop_warehouse_location.fragments.WarehouseMapFragment
 import com.example.oop_warehouse_location.models.user.Employee
 import com.example.oop_warehouse_location.models.user.User
 import com.example.oop_warehouse_location.models.user.UserFactory
@@ -158,6 +159,12 @@ class MainActivity : BaseActivity() {
                 }
                 R.id.nav_floor_plan -> {
                     loadFragment(FloorPlanFragment.newInstance(warehouseId))
+                    selectTab(NavTab.NONE)
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    true
+                }
+                R.id.nav_warehouse_map -> {
+                    loadFragment(WarehouseMapFragment.newInstance(warehouseId))
                     selectTab(NavTab.NONE)
                     drawerLayout.closeDrawer(GravityCompat.START)
                     true
@@ -381,6 +388,12 @@ class MainActivity : BaseActivity() {
     /** Opens the indoor GIS floor plan map screen. */
     fun openFloorPlan(initialZone: String? = null, targetParcelId: String? = null) {
         loadFragment(FloorPlanFragment.newInstance(warehouseId, initialZone, targetParcelId))
+        selectTab(NavTab.NONE)
+    }
+
+    /** Opens the real-world macro-GIS map screen (OpenStreetMap). */
+    fun openWarehouseMap() {
+        loadFragment(WarehouseMapFragment.newInstance(warehouseId))
         selectTab(NavTab.NONE)
     }
 

@@ -56,6 +56,9 @@ dependencies {
     // ML Kit Barcode Scanning
     implementation(libs.mlkit.barcode)
 
+    // OpenStreetMap (OSMDroid)
+    implementation(libs.osmdroid.android)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

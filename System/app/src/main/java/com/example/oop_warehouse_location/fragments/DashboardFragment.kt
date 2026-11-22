@@ -94,6 +94,11 @@ class DashboardFragment : BaseWarehouseFragment() {
         view.findViewById<View>(R.id.tvOutboundDock)?.setOnClickListener(clickOnShipped)
         (view.findViewById<View>(R.id.tvOutboundDock)?.parent as? View)?.setOnClickListener(clickOnShipped)
 
+        // Real-World Macro-GIS (OpenStreetMap) navigation
+        view.findViewById<View>(R.id.tvGlobalMapLink)?.setOnClickListener {
+            (activity as? MainActivity)?.openWarehouseMap()
+        }
+
         // Floor Map (Indoor GIS) navigation
         view.findViewById<View>(R.id.tvAisleHeatmapLink)?.setOnClickListener {
             (activity as? MainActivity)?.openFloorPlan()
