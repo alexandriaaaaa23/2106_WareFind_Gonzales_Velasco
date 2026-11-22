@@ -19,5 +19,16 @@ interface WarehouseRepository : BaseRepository<Warehouse> {
     ): Task<Void>
     fun joinWarehouseByInviteCode(inviteCode: String, uid: String): Task<Warehouse>
     fun generateUniqueInviteCode(remainingAttempts: Int = 8): Task<String>
+
+    // ── GIS METHODS (Phase 2 & Phase 3) ──────────────────────────────
+    fun updateWarehouseLocation(
+        warehouseId: String,
+        latitude: Double,
+        longitude: Double,
+        address: String,
+        radiusMeters: Double = 100.0
+    ): Task<Void>
+
+    fun getAllWarehouses(): Task<List<Warehouse>>
 }
 

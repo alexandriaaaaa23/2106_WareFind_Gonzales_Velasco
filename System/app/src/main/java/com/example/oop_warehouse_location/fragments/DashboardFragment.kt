@@ -136,28 +136,42 @@ class DashboardFragment : BaseWarehouseFragment() {
     private fun setupInviteCodeSection(view: View) {
         val inviteCodeCard = view.findViewById<View>(R.id.inviteCodeCard)
         val tvInviteCode = view.findViewById<TextView>(R.id.tvInviteCode)
+        val tvLocationHeader = view.findViewById<TextView>(R.id.tvWarehouseLocationHeader)
 
         val canManage = currentUser?.canManageWarehouse() == true
-        if (canManage && inviteCodeCard != null && tvInviteCode != null) {
-            inviteCodeCard.visibility = View.VISIBLE
-            // Load the warehouse to get the invite code
+        if (inviteCodeCard != null) {
+            inviteCodeCard.visibility = if (canManage) View.VISIBLE else View.GONE
+        }
+
+        if (warehouseId.isNotBlank()) {
             warehouseRepository.getWarehouse(warehouseId)
                 .addOnSuccessListener { wh ->
                     if (isAdded && this.view != null) {
                         warehouse = wh
-                        tvInviteCode.text = wh.inviteCode
+                        if (canManage && tvInviteCode != null) {
+                            tvInviteCode.text = wh.inviteCode
+                            inviteCodeCard?.setOnClickListener {
+                                val clipboard = requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                val clip = android.content.ClipData.newPlainText("Invite Code", wh.inviteCode)
+                                clipboard.setPrimaryClip(clip)
+                                Toast.makeText(requireContext(), "Invite code copied!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
 
-                        // Set up copy-to-clipboard
-                        inviteCodeCard.setOnClickListener {
-                            val clipboard = requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                            val clip = android.content.ClipData.newPlainText("Invite Code", wh.inviteCode)
-                            clipboard.setPrimaryClip(clip)
-                            Toast.makeText(requireContext(), "Invite code copied!", Toast.LENGTH_SHORT).show()
+                        // Display warehouse location header if configured
+                        if (tvLocationHeader != null) {
+                            if (wh.address.isNotBlank()) {
+                                tvLocationHeader.text = wh.address
+                                tvLocationHeader.visibility = View.VISIBLE
+                            } else if (wh.hasCoordinates()) {
+                                tvLocationHeader.text = wh.getFormattedCoordinates()
+                                tvLocationHeader.visibility = View.VISIBLE
+                            } else {
+                                tvLocationHeader.visibility = View.GONE
+                            }
                         }
                     }
                 }
-        } else if (inviteCodeCard != null) {
-            inviteCodeCard.visibility = View.GONE
         }
     }
 

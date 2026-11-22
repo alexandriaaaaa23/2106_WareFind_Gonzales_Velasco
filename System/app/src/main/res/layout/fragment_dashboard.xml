@@ -26,28 +26,45 @@
             android:paddingBottom="20dp">
 
             <!-- Greeting -->
-            <TextView
-                android:id="@+id/tvGreeting"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/layoutGreeting"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Hello, Name!"
-                android:textColor="@color/white"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:layout_toStartOf="@id/ivMenuButton"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvSubGreeting"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/tvGreeting"
-                android:layout_marginTop="2dp"
-                android:text="@string/welcome_back_sub"
-                android:textColor="#FFFFFFCC"
-                android:textSize="13sp" />
+                <TextView
+                    android:id="@+id/tvGreeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hello, Name!"
+                    android:textColor="@color/white"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
 
-            <!-- Hamburger Menu -->
+                <TextView
+                    android:id="@+id/tvSubGreeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/welcome_back_sub"
+                    android:textColor="#FFFFFFCC"
+                    android:textSize="13sp" />
 
-            <!-- Search Bar -->
+                <TextView
+                    android:id="@+id/tvWarehouseLocationHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:drawableStart="@drawable/ic_map"
+                    android:drawablePadding="4dp"
+                    android:drawableTint="#FFFFFFCC"
+                    android:textColor="#FFFFFFCC"
+                    android:textSize="11sp"
+                    android:visibility="gone"
+                    tools:text="Batangas Central Logistics Hub"
+                    tools:visibility="visible" />
+            </LinearLayout>
 
             <ImageView
                 android:id="@+id/ivMenuButton"
@@ -62,8 +79,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_below="@id/tvSubGreeting"
-                android:layout_marginTop="20dp"
+                android:layout_below="@id/layoutGreeting"
+                android:layout_marginTop="16dp"
                 android:background="@drawable/bg_search_bar"
                 android:gravity="center_vertical"
                 android:paddingStart="16dp"

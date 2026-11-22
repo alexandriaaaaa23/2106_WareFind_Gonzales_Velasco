@@ -167,6 +167,43 @@ class FirebaseWarehouseRepository(
         }
     }
 
+    override fun updateWarehouseLocation(
+        warehouseId: String,
+        latitude: Double,
+        longitude: Double,
+        address: String,
+        radiusMeters: Double
+    ): Task<Void> {
+        val targetId = warehouseId.ifBlank { this.warehouseId }
+        if (targetId.isBlank()) {
+            return Tasks.forException(IllegalArgumentException("Warehouse ID cannot be empty"))
+        }
+        val updates = mapOf(
+            "latitude" to latitude,
+            "longitude" to longitude,
+            "address" to address,
+            "radiusMeters" to radiusMeters
+        )
+        return db.collection(COLLECTION_WAREHOUSES)
+            .document(targetId)
+            .update(updates)
+    }
+
+    override fun getAllWarehouses(): Task<List<Warehouse>> {
+        return db.collection(COLLECTION_WAREHOUSES)
+            .get()
+            .continueWith { task ->
+                if (!task.isSuccessful) {
+                    throw task.exception ?: Exception("Failed to load warehouses")
+                }
+                task.result?.documents?.mapNotNull { doc ->
+                    doc.toObject(Warehouse::class.java)?.apply {
+                        if (warehouseId.isBlank()) warehouseId = doc.id
+                    }
+                } ?: emptyList()
+            }
+    }
+
     companion object {
         const val COLLECTION_WAREHOUSES = "warehouses"
         const val COLLECTION_USERS = "users"

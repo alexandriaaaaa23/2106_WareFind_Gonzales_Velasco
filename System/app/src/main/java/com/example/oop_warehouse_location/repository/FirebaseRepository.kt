@@ -61,6 +61,16 @@ class FirebaseRepository(
         managerUid: String
     ): Task<Void> = warehouseRepo.removeMemberFromWarehouse(warehouseId, memberUid, memberName, managerUid)
 
+    fun updateWarehouseLocation(
+        warehouseId: String,
+        latitude: Double,
+        longitude: Double,
+        address: String,
+        radiusMeters: Double = 100.0
+    ): Task<Void> = warehouseRepo.updateWarehouseLocation(warehouseId, latitude, longitude, address, radiusMeters)
+
+    fun getAllWarehouses(): Task<List<Warehouse>> = warehouseRepo.getAllWarehouses()
+
     fun joinWarehouseByInviteCode(inviteCode: String, uid: String): Task<Warehouse> =
         warehouseRepo.joinWarehouseByInviteCode(inviteCode, uid)
 

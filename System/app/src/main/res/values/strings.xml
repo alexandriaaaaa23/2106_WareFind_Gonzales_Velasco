@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">OOP Warehouse Location</string>
+    <string name="app_name">WareFind</string>
     <string name="warehouse_logo">Warehouse logo</string>
     <!--AUTH-->
     <string name="sign_in">Sign in</string>
@@ -128,5 +128,23 @@
     <string name="toggle_flash">Toggle flash</string>
     <string name="point_at_barcode">Point at a barcode</string>
     <string name="camera_permission_required">Camera permission is required to scan barcodes</string>
+
+    <!--GIS / WAREHOUSE LOCATION-->
+    <string name="warehouse_location">Warehouse Location</string>
+    <string name="no_address_set">No physical address set</string>
+    <string name="no_coordinates_set">Coordinates not configured</string>
+    <string name="geofence_radius_format">Geofence Radius: %1$d m</string>
+    <string name="edit_warehouse_location">Edit Warehouse Location</string>
+    <string name="address_label">Address / Facility Name</string>
+    <string name="latitude_label">Latitude (-90 to 90)</string>
+    <string name="longitude_label">Longitude (-180 to 180)</string>
+    <string name="radius_label">Geofence Radius (meters)</string>
+    <string name="use_current_gps">Use Current GPS</string>
+    <string name="save">Save</string>
+    <string name="edit">Edit</string>
+    <string name="location_updated_success">Warehouse location updated successfully</string>
+    <string name="failed_to_update_location">Failed to update location</string>
+    <string name="location_permission_required">Location permission is required to fetch GPS coordinates</string>
+    <string name="acquiring_location">Acquiring current GPS location…</string>
 
 </resources>
