@@ -20,5 +20,7 @@ class Manager(
     override fun canManageWarehouse(): Boolean = true
     override fun canRemoveMembers(): Boolean = true
     override fun canAddInventory(): Boolean = true
+    override fun canEditParcel(): Boolean = true
+    override fun canDeleteParcel(): Boolean = true
 }
 

@@ -1,6 +1,7 @@
 package com.example.oop_warehouse_location.fragments
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,8 +12,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.example.oop_warehouse_location.R
+import com.example.oop_warehouse_location.activities.AddInventoryActivity
+import com.example.oop_warehouse_location.activities.MainActivity
 import com.example.oop_warehouse_location.models.Parcel
 import com.example.oop_warehouse_location.models.parcel.ParcelStatus
+import com.example.oop_warehouse_location.models.user.User
+import com.example.oop_warehouse_location.models.user.UserFactory
 import com.example.oop_warehouse_location.repository.ParcelRepository
 import com.example.oop_warehouse_location.repository.firebase.FirebaseParcelRepository
 import com.example.oop_warehouse_location.utils.DateUtils
@@ -26,14 +31,16 @@ class ParcelDetailBottomSheetFragment : BottomSheetDialogFragment() {
     private lateinit var parcelRepository: ParcelRepository
     private var warehouseId: String = ""
     private var parcel: Parcel = Parcel()
+    private var accountType: String = ""
 
     var onActionCompleted: (() -> Unit)? = null
 
     companion object {
-        fun newInstance(warehouseId: String, parcel: Parcel): ParcelDetailBottomSheetFragment {
+        fun newInstance(warehouseId: String, parcel: Parcel, accountType: String = ""): ParcelDetailBottomSheetFragment {
             return ParcelDetailBottomSheetFragment().apply {
                 this.warehouseId = warehouseId
                 this.parcel = parcel
+                this.accountType = accountType
             }
         }
     }
@@ -215,6 +222,68 @@ class ParcelDetailBottomSheetFragment : BottomSheetDialogFragment() {
                         Toast.makeText(requireContext(), e.message ?: "Failed to return parcel to stock", Toast.LENGTH_SHORT).show()
                     }
                 }
+        }
+
+        // Manager Actions (RBAC via OOP Polymorphism)
+        val managerActionsContainer = view.findViewById<LinearLayout>(R.id.sheetManagerActionsContainer)
+        val btnEditParcel = view.findViewById<MaterialButton>(R.id.sheetBtnEditParcel)
+        val btnRemoveParcel = view.findViewById<MaterialButton>(R.id.sheetBtnRemoveParcel)
+
+        val userRole = if (accountType.isNotBlank()) {
+            accountType
+        } else {
+            (activity as? MainActivity)?.accountType.orEmpty()
+        }
+        val currentUserObj: User = UserFactory.create(userRole)
+
+        val canEdit = currentUserObj.canEditParcel()
+        val canDelete = currentUserObj.canDeleteParcel()
+
+        if (canEdit || canDelete) {
+            managerActionsContainer?.visibility = View.VISIBLE
+            btnEditParcel?.visibility = if (canEdit) View.VISIBLE else View.GONE
+            btnRemoveParcel?.visibility = if (canDelete) View.VISIBLE else View.GONE
+        } else {
+            managerActionsContainer?.visibility = View.GONE
+        }
+
+        btnEditParcel?.setOnClickListener {
+            dismiss()
+            val intent = Intent(requireContext(), AddInventoryActivity::class.java).apply {
+                putExtra("warehouseId", warehouseId)
+                putExtra(AddInventoryActivity.EXTRA_MODE, AddInventoryActivity.MODE_EDIT)
+                putExtra(AddInventoryActivity.EXTRA_PARCEL_ID, parcel.parcelID)
+            }
+            startActivity(intent)
+        }
+
+        btnRemoveParcel?.setOnClickListener {
+            AlertDialog.Builder(requireContext())
+                .setTitle("Remove Parcel")
+                .setMessage("Are you sure you want to permanently remove parcel ${parcel.parcelID} from warehouse inventory? This action cannot be undone.")
+                .setPositiveButton("Remove") { _, _ ->
+                    progressBar.visibility = View.VISIBLE
+                    actionContainer.visibility = View.GONE
+                    managerActionsContainer?.visibility = View.GONE
+                    parcelRepository.deleteParcel(parcel.parcelID)
+                        .addOnSuccessListener {
+                            if (isAdded) {
+                                Toast.makeText(requireContext(), "Parcel ${parcel.parcelID} removed", Toast.LENGTH_SHORT).show()
+                                onActionCompleted?.invoke()
+                                dismiss()
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            if (isAdded) {
+                                progressBar.visibility = View.GONE
+                                actionContainer.visibility = View.VISIBLE
+                                managerActionsContainer?.visibility = View.VISIBLE
+                                Toast.makeText(requireContext(), e.message ?: "Failed to remove parcel", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
     }
 }

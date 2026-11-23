@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,13 +29,15 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 
-/**
- * INHERITANCE — extends [BaseActivity] which provides:
- *   • FirebaseAuth initialisation
- *   • Edge-to-edge + window-insets setup
- *   • [setLoading] toggle (via overloaded local version for multi-button state)
- */
+
 class AddInventoryActivity : BaseActivity() {
+
+    companion object {
+        const val EXTRA_MODE = "extra_mode"
+        const val EXTRA_PARCEL_ID = "extra_parcel_id"
+        const val MODE_CREATE = "mode_create"
+        const val MODE_EDIT = "mode_edit"
+    }
 
     // Selected values (radio-button behavior: only one selected at a time)
     private var selectedCarrier: String = ""
@@ -43,9 +46,14 @@ class AddInventoryActivity : BaseActivity() {
     private var selectedParcelType: String = ""
     private val selectedHandling: MutableList<String> = mutableListOf()
 
+    private var mode: String = MODE_CREATE
+    private var editingParcelId: String = ""
+    private var existingParcel: Parcel? = null
+
     private lateinit var repository: FirebaseRepository
 
     // ── View references ─────────────────────────────────────────────────
+    private var tvHeaderTitle: TextView? = null
     private lateinit var etTracking: TextInputEditText
     private lateinit var tilTracking: TextInputLayout
     private lateinit var etRecipientName: TextInputEditText
@@ -64,11 +72,7 @@ class AddInventoryActivity : BaseActivity() {
     private lateinit var typeCards: List<LinearLayout>
     private lateinit var chipGroupHandling: ChipGroup
 
-    // ── Barcode Scanner: Activity Result launchers ──────────────────────
-    /**
-     * Receives the scanned barcode value from [BarcodeScannerActivity]
-     * and auto-fills the Tracking ID field.
-     */
+
     private val scannerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -83,9 +87,6 @@ class AddInventoryActivity : BaseActivity() {
         }
     }
 
-    /**
-     * Requests camera permission at runtime. On grant, launches the scanner.
-     */
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -103,6 +104,8 @@ class AddInventoryActivity : BaseActivity() {
 
         // Initialize repository with warehouse scope from Intent
         val warehouseId = intent.getStringExtra("warehouseId") ?: ""
+        mode = intent.getStringExtra(EXTRA_MODE) ?: MODE_CREATE
+        editingParcelId = intent.getStringExtra(EXTRA_PARCEL_ID) ?: ""
         repository = FirebaseRepository(warehouseId = warehouseId)
 
         bindViews()
@@ -114,10 +117,15 @@ class AddInventoryActivity : BaseActivity() {
         setupParcelTypeGrid()
         setupHandlingChips()
         setupActionButtons()
+
+        if (mode == MODE_EDIT && editingParcelId.isNotBlank()) {
+            setupEditMode()
+        }
     }
 
     // ── Bind all reusable view references ───────────────────────────────
     private fun bindViews() {
+        tvHeaderTitle = findViewById(R.id.tvHeaderTitle)
         etTracking = findViewById(R.id.etTracking)
         tilTracking = findViewById(R.id.tilTracking)
         etRecipientName = findViewById(R.id.etRecipientName)
@@ -158,9 +166,7 @@ class AddInventoryActivity : BaseActivity() {
         }
     }
 
-    /**
-     * Launches [BarcodeScannerActivity] via the [scannerLauncher].
-     */
+  
     private fun launchScanner() {
         scannerLauncher.launch(Intent(this, BarcodeScannerActivity::class.java))
     }
@@ -243,7 +249,7 @@ class AddInventoryActivity : BaseActivity() {
                     R.id.chipExpress -> getString(R.string.express_24h)
                     else -> null
                 }
-                if (label != null) selectedHandling.add(label)
+                label?.let { selectedHandling.add(it) }
             }
         }
     }
@@ -268,6 +274,99 @@ class AddInventoryActivity : BaseActivity() {
         }
     }
 
+    private fun setupEditMode() {
+        tvHeaderTitle?.text = "Update Parcel Details"
+        btnSaveItem.text = "Update Parcel"
+        btnReceiveNext.visibility = View.GONE
+        btnDiscard.text = getString(R.string.cancel)
+
+        // Lock primary key tracking ID
+        etTracking.isEnabled = false
+        etTracking.isFocusable = false
+        btnScan.visibility = View.GONE
+        tilTracking.helperText = "Parcel ID cannot be modified"
+
+        // RBAC check: Ensure user is a Manager with edit permission
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+        if (currentUserId.isNotBlank()) {
+            repository.getUser(currentUserId).addOnSuccessListener { user ->
+                if (!user.canEditParcel()) {
+                    Toast.makeText(this, "Unauthorized: Manager permissions required", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+        }
+
+        setLoading(true)
+        repository.getParcel(editingParcelId)
+            .addOnSuccessListener { parcel ->
+                setLoading(false)
+                existingParcel = parcel
+                populateParcelDetails(parcel)
+            }
+            .addOnFailureListener { e ->
+                setLoading(false)
+                Toast.makeText(this, "Failed to load parcel: ${e.message}", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+    }
+
+    private fun populateParcelDetails(parcel: Parcel) {
+        etTracking.setText(parcel.parcelID)
+
+        // Carrier
+        val carrierLabels = listOf("J&T Express", "Ninja Van", "Flash Express")
+        val carrierIndex = carrierLabels.indexOfFirst { it.equals(parcel.carrier, ignoreCase = true) }
+        if (carrierIndex != -1 && carrierIndex < carrierChips.size) {
+            selectChip(carrierChips[carrierIndex], carrierChips)
+            selectedCarrier = carrierLabels[carrierIndex]
+        }
+
+        // Recipient
+        etRecipientName.setText(parcel.receiptName)
+        etRecipientPhone.setText(parcel.recipientPhone)
+        etDeliveryHub.setText(parcel.deliveryHub)
+
+        // Zone
+        val zoneLabels = listOf("Zone A", "Zone B", "Zone C", "Staging")
+        val zoneIndex = zoneLabels.indexOfFirst { it.equals(parcel.zone, ignoreCase = true) }
+        if (zoneIndex != -1 && zoneIndex < zoneChips.size) {
+            selectChip(zoneChips[zoneIndex], zoneChips)
+            selectedZone = zoneLabels[zoneIndex]
+        }
+
+        // Rack Tier
+        if (parcel.rack.isNotBlank()) {
+            actvRackTier.setText(parcel.rack, false)
+            selectedRackTier = parcel.rack
+        }
+
+        // Parcel Type
+        val typeLabels = listOf("Flyer", "Small Box", "Medium Box", "Bulky Large", "Freight Pallet", "Custom")
+        val typeIndex = typeLabels.indexOfFirst { it.equals(parcel.parcelType, ignoreCase = true) }
+        if (typeIndex != -1 && typeIndex < typeCards.size) {
+            selectCard(typeCards[typeIndex], typeCards)
+            selectedParcelType = typeLabels[typeIndex]
+        }
+
+        // Handling
+        chipGroupHandling.clearCheck()
+        selectedHandling.clear()
+        val handlingMap = mapOf(
+            getString(R.string.fragile_glass) to R.id.chipFragile,
+            getString(R.string.perishable) to R.id.chipPerishable,
+            getString(R.string.high_value) to R.id.chipHighValue,
+            getString(R.string.express_24h) to R.id.chipExpress
+        )
+        parcel.handling.forEach { item ->
+            val chipId = handlingMap[item]
+            if (chipId != null) {
+                chipGroupHandling.check(chipId)
+                selectedHandling.add(item)
+            }
+        }
+    }
+
     private fun checkGeofenceBeforeSave(finishAfterSave: Boolean) {
         val warehouseId = intent.getStringExtra("warehouseId").orEmpty()
         if (warehouseId.isBlank()) {
@@ -283,7 +382,7 @@ class AddInventoryActivity : BaseActivity() {
                 ) == PackageManager.PERMISSION_GRANTED
 
                 if (fineGranted) {
-                    val locationManager = getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+                    val locationManager = getSystemService(LOCATION_SERVICE) as? LocationManager
                     val lastLoc = locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)
                         ?: locationManager?.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
@@ -333,6 +432,45 @@ class AddInventoryActivity : BaseActivity() {
     // ── Build parcel, save to Firestore, log activity ───────────────────
     private fun saveParcel(finishAfterSave: Boolean) {
         setLoading(true)
+
+        if (mode == MODE_EDIT) {
+            val parcel = existingParcel?.copy(
+                carrier = selectedCarrier,
+                receiptName = etRecipientName.text?.toString()?.trim().orEmpty(),
+                recipientPhone = etRecipientPhone.text?.toString()?.trim().orEmpty(),
+                deliveryHub = etDeliveryHub.text?.toString()?.trim().orEmpty(),
+                zone = selectedZone,
+                rack = selectedRackTier,
+                parcelType = selectedParcelType,
+                handling = selectedHandling.toMutableList()
+            ) ?: Parcel(
+                parcelID = editingParcelId,
+                carrier = selectedCarrier,
+                receiptName = etRecipientName.text?.toString()?.trim().orEmpty(),
+                recipientPhone = etRecipientPhone.text?.toString()?.trim().orEmpty(),
+                deliveryHub = etDeliveryHub.text?.toString()?.trim().orEmpty(),
+                zone = selectedZone,
+                rack = selectedRackTier,
+                parcelType = selectedParcelType,
+                handling = selectedHandling.toMutableList()
+            )
+
+            repository.updateParcel(parcel)
+                .addOnSuccessListener {
+                    setLoading(false)
+                    Toast.makeText(this, "Parcel updated successfully", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                .addOnFailureListener { e ->
+                    setLoading(false)
+                    Toast.makeText(
+                        this,
+                        "Failed to update: ${e.localizedMessage}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            return
+        }
 
         val parcel = Parcel(
             parcelID = etTracking.text?.toString()?.trim().orEmpty(),

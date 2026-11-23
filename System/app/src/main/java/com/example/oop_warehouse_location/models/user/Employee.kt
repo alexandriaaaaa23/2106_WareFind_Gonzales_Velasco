@@ -19,5 +19,7 @@ class Employee(
     override fun canManageWarehouse(): Boolean = false
     override fun canRemoveMembers(): Boolean = false
     override fun canAddInventory(): Boolean = true
+    override fun canEditParcel(): Boolean = false
+    override fun canDeleteParcel(): Boolean = false
 }
 

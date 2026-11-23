@@ -27,11 +27,46 @@ class FirebaseParcelRepository(
 
     override fun getById(id: String): Task<Parcel> = getParcel(id)
 
+    override fun deleteParcel(parcelId: String): Task<Void> = delete(parcelId)
+
     override fun delete(id: String): Task<Void> {
         if (warehouseId.isBlank() || id.isBlank()) {
             return Tasks.forException(IllegalArgumentException("Warehouse or Parcel ID cannot be empty"))
         }
-        return parcelDocument(id).delete()
+        return parcelDocument(id).delete().continueWithTask { task ->
+            if (task.isSuccessful) {
+                val userId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+                activityLogRepository.logActivity(
+                    ActivityLog(
+                        parcelId = id,
+                        userId = userId,
+                        action = "Removed parcel $id from inventory"
+                    )
+                )
+            } else {
+                Tasks.forException(task.exception ?: Exception("Failed to remove parcel"))
+            }
+        }
+    }
+
+    override fun updateParcel(parcel: Parcel): Task<Void> {
+        if (warehouseId.isBlank() || parcel.parcelID.isBlank()) {
+            return Tasks.forException(IllegalArgumentException("Warehouse or Parcel ID cannot be empty"))
+        }
+        return parcelDocument(parcel.parcelID).set(parcel).continueWithTask { task ->
+            if (task.isSuccessful) {
+                val userId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+                activityLogRepository.logActivity(
+                    ActivityLog(
+                        parcelId = parcel.parcelID,
+                        userId = userId,
+                        action = "Updated details for parcel ${parcel.parcelID}"
+                    )
+                )
+            } else {
+                Tasks.forException(task.exception ?: Exception("Failed to update parcel"))
+            }
+        }
     }
 
     override fun saveParcel(parcel: Parcel): Task<Void> {

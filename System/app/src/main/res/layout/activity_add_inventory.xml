@@ -33,6 +33,16 @@
                 android:padding="6dp"
                 android:src="@drawable/ic_arrow_back" />
 
+            <TextView
+                android:id="@+id/tvHeaderTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Receive Inventory"
+                android:textColor="@color/white"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
         </RelativeLayout>
 
         <!-- ===== CARRIER & ID SECTION ===== -->

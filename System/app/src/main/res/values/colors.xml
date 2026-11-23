@@ -14,4 +14,6 @@
     <color name="greenAccent">#4CAF50</color>
     <color name="orangeAccent">#FF9800</color>
     <color name="pinkLight10">#FFF0F5</color>
+    <color name="red">#E53935</color>
+    <color name="redLight">#FFEBEE</color>
 </resources>

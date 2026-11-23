@@ -25,6 +25,8 @@ abstract class User(
     abstract fun canManageWarehouse(): Boolean
     abstract fun canRemoveMembers(): Boolean
     abstract fun canAddInventory(): Boolean
+    abstract fun canEditParcel(): Boolean
+    abstract fun canDeleteParcel(): Boolean
 
     /** Returns the user's full name, falling back to email if name is blank. */
     fun fullName(): String = "$firstName $lastName".trim().ifBlank { email }

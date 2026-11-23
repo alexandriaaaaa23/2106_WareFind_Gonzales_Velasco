@@ -23,15 +23,7 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 
-/**
- * INHERITANCE — extends [BaseActivity] which provides:
- *   • FirebaseAuth initialisation
- *   • Edge-to-edge + window-insets setup
- *
- * Full-screen camera activity that uses CameraX + ML Kit Barcode Scanning
- * to detect shipping barcodes and QR codes. On successful detection,
- * returns the scanned value via [RESULT_OK] intent extra "barcode_value".
- */
+
 class BarcodeScannerActivity : BaseActivity() {
 
     companion object {
@@ -170,10 +162,6 @@ class BarcodeScannerActivity : BaseActivity() {
         }
     }
 
-    /**
-     * Sends the scanned barcode value back to the calling activity
-     * and finishes this scanner screen.
-     */
     private fun returnResult(barcodeValue: String) {
         val resultIntent = Intent().apply {
             putExtra(EXTRA_BARCODE_VALUE, barcodeValue)

@@ -81,6 +81,10 @@ class FirebaseRepository(
 
     fun saveParcel(parcel: Parcel): Task<Void> = parcelRepo.saveParcel(parcel)
 
+    fun updateParcel(parcel: Parcel): Task<Void> = parcelRepo.updateParcel(parcel)
+
+    fun deleteParcel(parcelId: String): Task<Void> = parcelRepo.deleteParcel(parcelId)
+
     fun getParcel(parcelId: String): Task<Parcel> = parcelRepo.getParcel(parcelId)
 
     fun stageForOutbound(parcelId: String): Task<Void> = parcelRepo.stageForOutbound(parcelId)

@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.oop_warehouse_location.R
+import com.example.oop_warehouse_location.activities.MainActivity
 import com.example.oop_warehouse_location.adapters.ParcelAdapter
 import com.example.oop_warehouse_location.fragments.base.BaseWarehouseFragment
 import com.example.oop_warehouse_location.models.Parcel
@@ -97,7 +98,8 @@ class StockFragment : BaseWarehouseFragment() {
     }
 
     private fun openParcelDetail(parcel: Parcel) {
-        val bottomSheet = ParcelDetailBottomSheetFragment.newInstance(warehouseId, parcel)
+        val accountType = (activity as? MainActivity)?.accountType.orEmpty()
+        val bottomSheet = ParcelDetailBottomSheetFragment.newInstance(warehouseId, parcel, accountType)
         bottomSheet.onActionCompleted = {
             if (isAdded && view != null) {
                 loadParcel(requireView())

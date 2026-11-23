@@ -8,6 +8,8 @@ import com.google.firebase.firestore.ListenerRegistration
 
 interface ParcelRepository : BaseRepository<Parcel> {
     fun saveParcel(parcel: Parcel): Task<Void>
+    fun updateParcel(parcel: Parcel): Task<Void>
+    fun deleteParcel(parcelId: String): Task<Void>
     fun getParcel(parcelId: String): Task<Parcel>
     fun stageForOutbound(parcelId: String): Task<Void>
     fun completeShipment(parcelId: String, notes: String = ""): Task<Void>
