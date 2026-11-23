@@ -9,22 +9,8 @@ import com.example.oop_warehouse_location.activities.base.BaseActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 
-/**
- * INHERITANCE — specialised base for authentication screens.
- *
- * Extracts duplicated validation logic shared by SignIn, SignUp,
- * and ForgotPassword activities, eliminating copy-paste code.
- *
- * Also overrides [setupWindowInsets] to add auto-scroll behaviour
- * when the soft keyboard is visible (common to all auth layouts
- * that use a ScrollView root).
- */
-abstract class BaseAuthActivity : BaseActivity() {
 
-    /**
-     * Auth screens typically use a ScrollView root that should auto-scroll
-     * to keep the focused field visible when the IME appears.
-     */
+abstract class BaseAuthActivity : BaseActivity() {
     override fun setupWindowInsets() {
         val root = findViewById<ScrollView>(R.id.main) ?: run {
             super.setupWindowInsets()
@@ -44,12 +30,6 @@ abstract class BaseAuthActivity : BaseActivity() {
         }
     }
 
-    /**
-     * Validates a non-empty email field with a valid format.
-     *
-     * @return the trimmed email string, or `null` when validation fails
-     *         (the appropriate error is set on [emailLayout]).
-     */
     protected fun validateEmail(emailLayout: TextInputLayout, emailInput: TextInputEditText): String? {
         val email = emailInput.text.toString().trim()
         return when {
@@ -70,12 +50,6 @@ abstract class BaseAuthActivity : BaseActivity() {
         }
     }
 
-    /**
-     * Validates a password with a minimum length.
-     *
-     * @return the trimmed password string, or `null` when validation fails
-     *         (the appropriate error is set on [passwordLayout]).
-     */
     protected fun validatePassword(
         passwordLayout: TextInputLayout,
         passwordInput: TextInputEditText,

@@ -1,5 +1,6 @@
 package com.example.oop_warehouse_location.activities
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -67,7 +68,17 @@ class SignInPage : BaseAuthActivity() {
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
-                        routeUserAfterAuth(progressBar, btnLogIn)
+                        val user = auth.currentUser
+                        user?.reload()?.addOnCompleteListener {
+                            val reloadedUser = auth.currentUser
+                            if (reloadedUser != null && !reloadedUser.isEmailVerified) {
+                                setLoading(progressBar, btnLogIn, false)
+                                showUnverifiedEmailDialog(reloadedUser)
+                                auth.signOut()
+                                return@addOnCompleteListener
+                            }
+                            routeUserAfterAuth(progressBar, btnLogIn)
+                        }
                     } else {
                         setLoading(progressBar, btnLogIn, false)
                         val errorMessage = task.exception?.message ?: "Authentication failed"
@@ -79,16 +90,46 @@ class SignInPage : BaseAuthActivity() {
 
     override fun onStart() {
         super.onStart()
-        // If user is already signed in, navigate based on their profile
+        // If user is already signed in, check verification before navigating
         val currentUser = auth.currentUser
         if (currentUser != null) {
             val progressBar = findViewById<ProgressBar>(R.id.progressBar)
             val btnLogIn = findViewById<MaterialButton>(R.id.btnLogIn)
             if (progressBar != null && btnLogIn != null) {
                 setLoading(progressBar, btnLogIn, true)
-                routeUserAfterAuth(progressBar, btnLogIn)
+                currentUser.reload().addOnCompleteListener {
+                    val reloadedUser = auth.currentUser
+                    if (reloadedUser != null && reloadedUser.isEmailVerified) {
+                        routeUserAfterAuth(progressBar, btnLogIn)
+                    } else {
+                        setLoading(progressBar, btnLogIn, false)
+                        auth.signOut()
+                    }
+                }
             }
         }
+    }
+
+    /**
+     * Shows an alert informing the user their email is not verified,
+     * offering an option to resend the verification email.
+     */
+    private fun showUnverifiedEmailDialog(user: com.google.firebase.auth.FirebaseUser) {
+        val userEmail = user.email.orEmpty()
+        AlertDialog.Builder(this)
+            .setTitle("Email Not Verified")
+            .setMessage("Your email address ($userEmail) has not been verified yet.\n\nPlease check your inbox (and spam folder) and click the verification link before logging in.")
+            .setPositiveButton("Resend Email") { _, _ ->
+                user.sendEmailVerification()
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Verification email resent to $userEmail.", Toast.LENGTH_LONG).show()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(this, "Failed to resend email: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    }
+            }
+            .setNegativeButton("OK", null)
+            .show()
     }
 
     /**

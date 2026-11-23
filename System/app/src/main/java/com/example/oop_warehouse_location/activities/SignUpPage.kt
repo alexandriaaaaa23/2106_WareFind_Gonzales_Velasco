@@ -1,5 +1,6 @@
 package com.example.oop_warehouse_location.activities
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ProgressBar
@@ -170,6 +171,7 @@ class SignUpPage : BaseAuthActivity() {
                     createManagerWarehouse(
                         user = user,
                         inviteCode = inviteCode,
+                        email = email,
                         progressBar = progressBar,
                         btnSignUp = btnSignUp
                     )
@@ -179,13 +181,15 @@ class SignUpPage : BaseAuthActivity() {
                     Toast.makeText(this, "Failed to generate invite code: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                 }
         } else {
-            // Employee — save user without warehouseId, then redirect to JoinWarehouseActivity
+            // Employee — save user without warehouseId, then require email verification before joining
             repository.saveUser(user)
                 .addOnSuccessListener {
-                    setLoading(progressBar, btnSignUp, false)
-                    Toast.makeText(this, "Account created! Please join a warehouse.", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, JoinWarehouseActivity::class.java))
-                    finish()
+                    handlePostRegistrationVerification(
+                        email = email,
+                        successNotice = "Employee account created!",
+                        progressBar = progressBar,
+                        btnSignUp = btnSignUp
+                    )
                 }
                 .addOnFailureListener { e ->
                     setLoading(progressBar, btnSignUp, false)
@@ -197,6 +201,7 @@ class SignUpPage : BaseAuthActivity() {
     private fun createManagerWarehouse(
         user: User,
         inviteCode: String,
+        email: String,
         progressBar: ProgressBar,
         btnSignUp: MaterialButton
     ) {
@@ -217,17 +222,12 @@ class SignUpPage : BaseAuthActivity() {
             .addOnSuccessListener {
                 repository.saveUser(user)
                     .addOnSuccessListener {
-                        setLoading(progressBar, btnSignUp, false)
-                        Toast.makeText(
-                            this,
-                            "Account created! Your invite code: $inviteCode",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        val intent = Intent(this, MainActivity::class.java)
-                        intent.putExtra("warehouseId", warehouseId)
-                        intent.putExtra("accountType", user.getRole())
-                        startActivity(intent)
-                        finish()
+                        handlePostRegistrationVerification(
+                            email = email,
+                            successNotice = "Manager account created! Your warehouse invite code is: $inviteCode",
+                            progressBar = progressBar,
+                            btnSignUp = btnSignUp
+                        )
                     }
                     .addOnFailureListener { e ->
                         setLoading(progressBar, btnSignUp, false)
@@ -237,6 +237,46 @@ class SignUpPage : BaseAuthActivity() {
             .addOnFailureListener { e ->
                 setLoading(progressBar, btnSignUp, false)
                 Toast.makeText(this, "Failed to create warehouse: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+            }
+    }
+
+    /**
+     * Sends Firebase email verification to the registered address, signs the user out,
+     * and prompts them with a dialog before redirecting to SignInPage.
+     */
+    private fun handlePostRegistrationVerification(
+        email: String,
+        successNotice: String = "",
+        progressBar: ProgressBar,
+        btnSignUp: MaterialButton
+    ) {
+        val firebaseUser = auth.currentUser
+        firebaseUser?.sendEmailVerification()
+            ?.addOnCompleteListener { task ->
+                setLoading(progressBar, btnSignUp, false)
+                auth.signOut()
+
+                val message = buildString {
+                    if (successNotice.isNotBlank()) {
+                        append(successNotice)
+                        append("\n\n")
+                    }
+                    if (task.isSuccessful) {
+                        append("A verification link has been sent to $email.\n\nPlease check your inbox (and spam folder) and click the link to verify your email before logging in.")
+                    } else {
+                        append("Account created, but could not send verification email: ${task.exception?.localizedMessage}.\n\nYou can request a verification email on the Sign In page.")
+                    }
+                }
+
+                AlertDialog.Builder(this)
+                    .setTitle("Verify Your Email")
+                    .setMessage(message)
+                    .setCancelable(false)
+                    .setPositiveButton("Go to Sign In") { _, _ ->
+                        startActivity(Intent(this, SignInPage::class.java))
+                        finish()
+                    }
+                    .show()
             }
     }
 }
